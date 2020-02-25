@@ -1,0 +1,5 @@
+profile: function-aws
+defaultPackage: io.micronaut.bots.telegram.function.apigatewayevent
+---
+testFramework: spock
+sourceLanguage: java
