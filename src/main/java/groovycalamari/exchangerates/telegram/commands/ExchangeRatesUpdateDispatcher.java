@@ -1,6 +1,7 @@
 package groovycalamari.exchangerates.telegram.commands;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
+import io.micronaut.bots.telegram.core.ChatType;
 import io.micronaut.bots.telegram.dispatcher.DefaultUpdateDispatcher;
 import io.micronaut.bots.telegram.dispatcher.CommandHandler;
 import io.micronaut.bots.telegram.core.Send;
@@ -31,11 +32,19 @@ public class ExchangeRatesUpdateDispatcher extends DefaultUpdateDispatcher {
                                                                 Update update) {
         Optional<Send> messageOptional = super.handleUpdateNotProcessedByCommands(telegramBot, update);
         String text = CommandHandler.parseText(update);
-        if (AtDateCommandHandler.matches(text)) {
-            return atDateCommandHandler.handle(update);
-        }
-        if (LatestCommandHandler.matches(text)) {
-            return latestCommandHandler.handle(update);
+        String type = CommandHandler.parseType(update);
+
+        boolean isPrivateMessage = (type != null && type.equals(ChatType.PRIVATE.toString()));
+
+        boolean isMessageTargetToTheBot = text != null && text.contains(telegramBot.getAtUsername());
+
+        if (text != null && (isPrivateMessage || isMessageTargetToTheBot)) {
+            if (AtDateCommandHandler.matches(text)) {
+                return atDateCommandHandler.handle(telegramBot, update);
+            }
+            if (LatestCommandHandler.matches(text)) {
+                return latestCommandHandler.handle(telegramBot, update);
+            }
         }
         return messageOptional;
     }

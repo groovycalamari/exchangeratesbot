@@ -36,7 +36,7 @@ dependencies {
 
     implementation 'com.amazonaws:aws-xray-recorder-sdk-apache-http:2.4.0'
 
-    implementation 'groovycalamari:telegramlambda:0.6'
+    implementation 'groovycalamari:telegramlambda:0.8'
     implementation 'groovycalamari:exchangeratesapi:0.4'
 
     runtimeOnly "com.amazonaws:aws-lambda-java-log4j2:1.0.0"

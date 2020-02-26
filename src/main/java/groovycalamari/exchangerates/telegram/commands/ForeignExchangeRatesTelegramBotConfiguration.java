@@ -10,6 +10,7 @@ import javax.inject.Singleton;
 @Singleton
 public class ForeignExchangeRatesTelegramBotConfiguration implements TelegramBotConfiguration {
     public static final String NAME = "foreignexchangeratesbot";
+    public static final String AT_USERNAME = "@ForeignExchangeRatesBot";
     public static final String ENV_TOKEN = "TOKEN";
 
     @Nonnull
@@ -18,6 +19,11 @@ public class ForeignExchangeRatesTelegramBotConfiguration implements TelegramBot
         return System.getenv(ENV_TOKEN);
     }
 
+    @Nonnull
+    @Override
+    public String getAtUsername() {
+        return AT_USERNAME;
+    }
     @Nonnull
     @Override
     public String getName() {

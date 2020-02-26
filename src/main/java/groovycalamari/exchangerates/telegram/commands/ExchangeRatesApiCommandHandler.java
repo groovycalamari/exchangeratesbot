@@ -4,9 +4,11 @@ import com.amazonaws.xray.proxies.apache.http.HttpClientBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import io.exchangeratesapi.Currency;
+import io.micronaut.bots.telegram.core.ChatType;
 import io.micronaut.bots.telegram.dispatcher.CommandHandler;
 import io.micronaut.bots.telegram.dispatcher.TextCommandHandler;
 import io.micronaut.bots.telegram.core.Update;
+import io.micronaut.bots.telegram.httpclient.TelegramBot;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -34,8 +36,15 @@ public abstract class ExchangeRatesApiCommandHandler extends TextCommandHandler 
 
     @NonNull
     @Override
-    protected Optional<String> replyUpdate(@NonNull Update update) {
-        return (Optional) Optional.ofNullable(CommandHandler.parseText(update)).map(text -> {
+    protected Optional<String> replyUpdate(@NonNull TelegramBot telegramBot,
+                                           @NonNull Update update) {
+        String text = CommandHandler.parseText(update);
+        String type = CommandHandler.parseType(update);
+        boolean isPrivateMessage = (type != null && type.equals(ChatType.PRIVATE.toString()));
+
+        boolean isMessageTargetToTheBot = text != null && text.contains(telegramBot.getAtUsername());
+
+        if (text != null && (isPrivateMessage || isMessageTargetToTheBot)) {
             Optional<String> uriOpt = parseUri(text);
             if (!uriOpt.isPresent()) {
                 return Optional.empty();
@@ -47,7 +56,9 @@ public abstract class ExchangeRatesApiCommandHandler extends TextCommandHandler 
             }
             ExchangeRates exchangeRates = exchangeRatesOpt.get();
             return Optional.of(textForExchangeRates(exchangeRates));
-        }).orElse(Optional.empty());
+        }
+        return Optional.empty();
+
     }
 
 
