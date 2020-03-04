@@ -1,3 +1,13 @@
 micronaut:
   function:
     name: ForeignExchangeRatesBot
+---
+telegram:
+  bots:
+    commands:
+      about:
+        parse-mode: 'Markdown'
+        path: 'classpath:about.md'
+      help:
+        parse-mode: 'Markdown'
+        path: 'classpath:help.md'

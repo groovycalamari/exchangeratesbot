@@ -8,7 +8,7 @@ import spock.lang.Subject
 class LatestCommandHandlerSpec extends Specification {
     @Shared
     @Subject
-    LatestCommandHandler handler = new LatestCommandHandler()
+    LatestCommandHandler handler = new LatestCommandHandler(null, null)
 
     void "regex matches USD EUR"() {
         given:
@@ -16,7 +16,7 @@ class LatestCommandHandlerSpec extends Specification {
 
         expect:
         handler.matches(text)
-        handler.parseUri(text).get() == "https://api.exchangeratesapi.io/latest?base=USD&symbols=EUR"
+        handler.parseUri(null, text).get() == "https://api.exchangeratesapi.io/latest?base=USD&symbols=EUR"
 
         !handler.matches("2020-02-19 USD EUR")
     }

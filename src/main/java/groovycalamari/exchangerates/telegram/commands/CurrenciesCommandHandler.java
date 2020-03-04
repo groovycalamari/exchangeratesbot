@@ -4,16 +4,20 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 import io.exchangeratesapi.Currency;
 import io.micronaut.bots.telegram.core.Update;
 import io.micronaut.bots.telegram.dispatcher.TextCommandHandler;
+import io.micronaut.bots.telegram.dispatcher.UpdateParser;
 import io.micronaut.bots.telegram.httpclient.TelegramBot;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
 import java.util.Optional;
 
-@Named("/currencies")
+@Named("currencies")
 @Singleton
 public class CurrenciesCommandHandler extends TextCommandHandler {
 
+    public CurrenciesCommandHandler(UpdateParser updateParser) {
+        super(updateParser);
+    }
     @NonNull
     @Override
     protected Optional<String> replyUpdate(@NonNull TelegramBot telegramBot,

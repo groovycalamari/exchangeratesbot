@@ -1,8 +1,12 @@
 package groovycalamari.exchangerates.telegram.commands;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import io.exchangeratesapi.Currency;
 import io.exchangeratesapi.ExchangeRatesConfigurationProperties;
+import io.micronaut.bots.telegram.core.Update;
+import io.micronaut.bots.telegram.dispatcher.UpdateParser;
+
 import javax.inject.Singleton;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -20,8 +24,8 @@ public class LatestCommandHandler extends ExchangeRatesApiCommandHandler {
         pattern = Pattern.compile(patternString, Pattern.CASE_INSENSITIVE);
     }
 
-    protected LatestCommandHandler(ObjectMapper objectMapper) {
-        super(objectMapper);
+    protected LatestCommandHandler(UpdateParser updateParser, ObjectMapper objectMapper) {
+        super(updateParser, objectMapper);
     }
 
     public static boolean matches(String text) {
@@ -29,13 +33,13 @@ public class LatestCommandHandler extends ExchangeRatesApiCommandHandler {
     }
 
     @Override
-    protected Optional<String> parseUri(String text) {
+    protected Optional<String> parseUri(@NonNull Update update, @NonNull String text) {
         Matcher matcher = pattern.matcher(text.toUpperCase());
         matcher.find();
         if (matcher.groupCount() >= 2) {
             Currency base = Currency.valueOf(matcher.group(1));
             Currency symbol = Currency.valueOf(matcher.group(2));
-            return Optional.of(ExchangeRatesConfigurationProperties.HOST_LIVE + "/latest?base=" + base.toString() + "&symbols=" + symbol.toString());
+            return Optional.of(latestUri(base, symbol));
         }
         return Optional.empty();
     }

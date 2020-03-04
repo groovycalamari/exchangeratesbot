@@ -1,8 +1,11 @@
 package groovycalamari.exchangerates.telegram.commands;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import io.exchangeratesapi.Currency;
 import io.exchangeratesapi.ExchangeRatesConfigurationProperties;
+import io.micronaut.bots.telegram.core.Update;
+import io.micronaut.bots.telegram.dispatcher.UpdateParser;
 
 import javax.inject.Singleton;
 import java.util.Optional;
@@ -21,8 +24,8 @@ public class AtDateCommandHandler extends ExchangeRatesApiCommandHandler {
         pattern = Pattern.compile(patternString, Pattern.CASE_INSENSITIVE);
     }
 
-    protected AtDateCommandHandler(ObjectMapper objectMapper) {
-        super(objectMapper);
+    protected AtDateCommandHandler(UpdateParser updateParser, ObjectMapper objectMapper) {
+        super(updateParser, objectMapper);
     }
 
     public static boolean matches(String text) {
@@ -30,14 +33,14 @@ public class AtDateCommandHandler extends ExchangeRatesApiCommandHandler {
     }
 
     @Override
-    protected Optional<String> parseUri(String text) {
+    protected Optional<String> parseUri(@NonNull Update update, @NonNull String text) {
         Matcher matcher = pattern.matcher(text.toUpperCase());
         matcher.find();
         if (matcher.groupCount() >= 5) {
             String dateStr = matcher.group(1);
             Currency base = Currency.valueOf(matcher.group(4));
             Currency symbol = Currency.valueOf(matcher.group(5));
-            return Optional.of(ExchangeRatesConfigurationProperties.HOST_LIVE + "/" + dateStr + "?base=" + base.toString() + "&symbols=" + symbol.toString());
+            return Optional.of(atDateUri(dateStr, base, symbol));
         }
         return Optional.empty();
     }

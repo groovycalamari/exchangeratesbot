@@ -4,10 +4,13 @@ import com.amazonaws.xray.proxies.apache.http.HttpClientBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import io.exchangeratesapi.Currency;
+import io.exchangeratesapi.ExchangeRatesConfigurationProperties;
+import io.micronaut.bots.telegram.core.Chat;
 import io.micronaut.bots.telegram.core.ChatType;
 import io.micronaut.bots.telegram.dispatcher.CommandHandler;
 import io.micronaut.bots.telegram.dispatcher.TextCommandHandler;
 import io.micronaut.bots.telegram.core.Update;
+import io.micronaut.bots.telegram.dispatcher.UpdateParser;
 import io.micronaut.bots.telegram.httpclient.TelegramBot;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -28,24 +31,21 @@ public abstract class ExchangeRatesApiCommandHandler extends TextCommandHandler 
         httpClient = HttpClientBuilder.create().build();
     }
 
-    protected ExchangeRatesApiCommandHandler(ObjectMapper objectMapper) {
+    protected ExchangeRatesApiCommandHandler(UpdateParser updateParser,
+                                             ObjectMapper objectMapper) {
+        super((updateParser));
         this.objectMapper = objectMapper;
     }
 
-    protected abstract Optional<String> parseUri(String text);
+    protected abstract Optional<String> parseUri(@NonNull Update update,  @NonNull String text);
 
     @NonNull
     @Override
     protected Optional<String> replyUpdate(@NonNull TelegramBot telegramBot,
                                            @NonNull Update update) {
-        String text = CommandHandler.parseText(update);
-        String type = CommandHandler.parseType(update);
-        boolean isPrivateMessage = (type != null && type.equals(ChatType.PRIVATE.toString()));
-
-        boolean isMessageTargetToTheBot = text != null && text.contains(telegramBot.getAtUsername());
-
-        if (text != null && (isPrivateMessage || isMessageTargetToTheBot)) {
-            Optional<String> uriOpt = parseUri(text);
+        String text = updateParser.parseTextWithoutBotName(telegramBot, update).orElse(null);
+        if (text != null) {
+            Optional<String> uriOpt = parseUri(update, text);
             if (!uriOpt.isPresent()) {
                 return Optional.empty();
             }
@@ -55,14 +55,16 @@ public abstract class ExchangeRatesApiCommandHandler extends TextCommandHandler 
                 return Optional.empty();
             }
             ExchangeRates exchangeRates = exchangeRatesOpt.get();
-            return Optional.of(textForExchangeRates(exchangeRates));
+            return Optional.of(textForExchangeRates(telegramBot, update, exchangeRates));
         }
         return Optional.empty();
-
     }
 
+    protected String atDateUri(String dateStr, Currency base, Currency symbol) {
+        return ExchangeRatesConfigurationProperties.HOST_LIVE + "/" + dateStr + "?base=" + base.toString() + "&symbols=" + symbol.toString();
+    }
 
-    private String textForExchangeRates(ExchangeRates rates) {
+    protected String textForExchangeRates(@NonNull TelegramBot telegramBot, @NonNull Update update, @NonNull ExchangeRates rates) {
         String text = "At " + rates.getDate().toString() + " 1 " + rates.getBase().getCode() + " was ";
         for (Currency currency : rates.getRates().keySet()) {
             text +=   rates.getRates().get(currency) + " " + currency.getCode();
@@ -81,5 +83,9 @@ public abstract class ExchangeRatesApiCommandHandler extends TextCommandHandler 
             LOG.error("IOOE xception fechting response "+ ioe.getMessage());
         }
         return Optional.empty();
+    }
+
+    protected String latestUri(Currency base, Currency symbol) {
+        return ExchangeRatesConfigurationProperties.HOST_LIVE + "/latest?base=" + base.toString() + "&symbols=" + symbol.toString();
     }
 }
