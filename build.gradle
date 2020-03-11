@@ -9,6 +9,11 @@ plugins {
 version "0.1"
 group "groovycalamari"
 
+
+ext {
+    micronautChatsVersion = '0.17'
+}
+
 repositories {
     mavenCentral()
     maven { url "https://jcenter.bintray.com" }
@@ -35,7 +40,19 @@ dependencies {
     implementation "software.amazon.awssdk:dynamodb:2.10.73"
     implementation 'com.amazonaws:aws-xray-recorder-sdk-apache-http:2.4.0'
 
-    implementation 'groovycalamari:telegramlambda:0.11'
+    compileOnly "groovycalamari:googlechatcore:$micronautChatsVersion"
+    compileOnly "groovycalamari:telegramdispatcher:$micronautChatsVersion"
+
+    if (project.ext.has("chatbots.env") && project.ext.get("chatbots.env") == 'googlechat') {
+        println "adding googlechatlambda dependency as runtimeOnly"
+        runtimeOnly "groovycalamari:googlechatlambda:$micronautChatsVersion"
+
+    } else if (project.ext.has("chatbots.env") && project.ext.get("chatbots.env") == 'telegram') {
+        println "adding telegramlambda dependency as runtimeOnly"
+        runtimeOnly "groovycalamari:telegramlambda:$micronautChatsVersion"
+    }
+    testImplementation "groovycalamari:telegramlambda:$micronautChatsVersion"
+
     implementation 'groovycalamari:exchangeratesapi:0.4'
 
     runtimeOnly "com.amazonaws:aws-lambda-java-log4j2:1.0.0"
@@ -75,8 +92,13 @@ tasks.withType(JavaExec) {
 mainClassName = "io.micronaut.function.executor.FunctionApplication"
 applicationDefaultJvmArgs = [""]
 
+shadowJar {
+    archiveBaseName =  "${rootProject.name}${project.ext.has("chatbots.env") ? project.ext.get("chatbots.env") : ""}"
+}
 jar {
+    archiveBaseName = "${rootProject.name}${project.ext.has("chatbots.env") ? project.ext.get("chatbots.env") : ""}"
     manifest {
         attributes 'Main-Class': mainClassName
     }
 }
+
