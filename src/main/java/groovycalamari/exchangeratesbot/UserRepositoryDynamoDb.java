@@ -2,6 +2,7 @@ package groovycalamari.exchangeratesbot;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import io.exchangeratesapi.Currency;
+import io.micronaut.context.annotation.Requires;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.regions.Region;
@@ -11,6 +12,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValueUpdate;
 import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
 
@@ -22,11 +24,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+@Requires(classes = DynamoDbClient.class)
 @Singleton
-public class UserRepositoryImpl implements UserRepository {
-    private static final Logger LOG = LoggerFactory.getLogger(UserRepositoryImpl.class);
-    private static final Currency DEFAULT_BASE = Currency.EUR;
-    private static final Currency DEFAULT_TARGET = Currency.USD;
+public class UserRepositoryDynamoDb implements UserRepository {
+    private static final Logger LOG = LoggerFactory.getLogger(UserRepositoryDynamoDb.class);
+
 
     private final String TABLENAME = System.getenv("DYNAMODB_TABLE");
     public static final String KEY = "userid";
@@ -34,13 +36,24 @@ public class UserRepositoryImpl implements UserRepository {
     public static final String ATTRIBUTE_TARGET = "target";
     private final DynamoDbClient ddb;
 
-    public UserRepositoryImpl() {
+    public UserRepositoryDynamoDb() {
         this.ddb = DynamoDbClient.builder().region(Region.of(System.getenv("DYNAMODB_REGION"))).build();
     }
 
     private AttributeValue attributeValueForUserId(@NonNull Serializable userId) {
         if (userId instanceof Integer) {
+            if (LOG.isInfoEnabled()) {
+                LOG.info("Setting user id attribute value as number");
+            }
             return AttributeValue.builder().n(String.valueOf(userId)).build();
+        } else if (userId instanceof String) {
+            if (LOG.isInfoEnabled()) {
+                LOG.info("Setting user id attribute value as string");
+            }
+            return AttributeValue.builder().s((String) userId).build();
+        }
+        if (LOG.isInfoEnabled()) {
+            LOG.info("Setting user id attribute value as string calling String.valueOf");
         }
         return AttributeValue.builder().s(String.valueOf(userId)).build();
     }
@@ -95,22 +108,28 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public Optional<Settings> findByUserId(@NonNull Serializable userid) {
         if (LOG.isInfoEnabled()) {
-            LOG.info("Finding user {}", userid);
+            LOG.info("Finding user by id {}", userid);
         }
         GetItemRequest request = findByUserIdGetItemRequest(userid);
         try {
-            Map<String, AttributeValue> returnedItem = ddb.getItem(request).item();
-            if (request != null) {
+            GetItemResponse response = ddb.getItem(request);
+            if (response.hasItem()) {
                 if (LOG.isInfoEnabled()) {
-                    LOG.info("User found");
+                    LOG.info("response has item");
                 }
-                return parseSettings(returnedItem);
+                Map<String, AttributeValue> returnedItem = ddb.getItem(request).item();
+                if (returnedItem != null) {
+                    return parseSettings(returnedItem);
+                } else {
+                    if (LOG.isInfoEnabled()) {
+                        LOG.info("returned item is null");
+                    }
+                }
             } else {
                 if (LOG.isInfoEnabled()) {
                     LOG.info("User not found");
                 }
             }
-
         } catch (DynamoDbException e) {
             if (LOG.isErrorEnabled()) {
                 LOG.error("dynamo db exception {}", e.getMessage());
@@ -123,8 +142,8 @@ public class UserRepositoryImpl implements UserRepository {
     private boolean existsByUserId(@NonNull Serializable userid) {
         GetItemRequest request = findByUserIdGetItemRequest(userid);
         try {
-            Map<String, AttributeValue> returnedItem = ddb.getItem(request).item();
-            return returnedItem != null;
+            GetItemResponse response = ddb.getItem(request);
+            return response.hasItem();
             } catch(DynamoDbException e) {
             if (LOG.isErrorEnabled()) {
                 LOG.error("dynamo db exception {}", e);
@@ -142,15 +161,11 @@ public class UserRepositoryImpl implements UserRepository {
                 .build();
     }
 
-    private Settings defaultSettings() {
-        Settings settings = new Settings();
-        settings.setBase(DEFAULT_BASE);
-        settings.setTarget(DEFAULT_TARGET);
-        return settings;
-    }
-
     private Optional<Settings> parseSettings(Map<String, AttributeValue> returnedItem) {
         Settings settings = new Settings();
+        if (LOG.isWarnEnabled() && returnedItem.keySet().isEmpty()) {
+            LOG.info("returned items is empty");
+        }
         if (LOG.isInfoEnabled()) {
             LOG.info("returned items {}", String.join(",", returnedItem.keySet()));
         }

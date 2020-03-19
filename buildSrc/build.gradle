@@ -1,0 +1,16 @@
+plugins {
+    id 'groovy'
+}
+
+ext {
+    groovyVersion = '2.5.10'
+}
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    // Use the latest Groovy version for building this library
+    compile "org.codehaus.groovy:groovy-all:$groovyVersion"
+}

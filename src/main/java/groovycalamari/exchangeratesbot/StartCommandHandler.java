@@ -38,7 +38,7 @@ public class StartCommandHandler extends FileCommandHandler {
         Optional<Serializable> userIdOptional = messageParser.parseUserId(messageReceive);
         if (userIdOptional.isPresent()) {
             Serializable userId = userIdOptional.get();
-            if (userRepository.findByUserId(userId).isEmpty()) {
+            if (!userRepository.findByUserId(userId).isPresent()) {
                 userRepository.save(userId);
             }
         }

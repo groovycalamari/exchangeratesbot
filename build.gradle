@@ -1,3 +1,5 @@
+import groovycalamari.exchangeratesbot.build.ChatBotsRuntime
+
 plugins {
     id "com.github.johnrengelman.shadow" version "5.2.0"
     id "jp.classmethod.aws.lambda" version "0.39"
@@ -11,14 +13,22 @@ group "groovycalamari"
 
 
 ext {
-    micronautChatsVersion = '0.17'
+    micronautChatsVersion = '0.31'
+    dynamoDbVersion = '2.10.73'
+    lambdaEventsVersion = '2.2.7'
+    xrayRecorderSdkApacheHttpVersion = '2.4.0'
+    exchangeRatesApiVersion = '0.5'
+}
+
+repositories {
+    jcenter()
 }
 
 repositories {
     mavenCentral()
     maven { url "https://jcenter.bintray.com" }
     maven { url = 'https://dl.bintray.com/groovycalamari/maven'}
-
+    maven { url "https://oss.jfrog.org/oss-snapshot-local" }
 }
 
 configurations {
@@ -34,29 +44,49 @@ dependencies {
     implementation "io.micronaut:micronaut-inject"
     implementation "io.micronaut:micronaut-validation"
     implementation "io.micronaut:micronaut-runtime"
-    implementation "io.micronaut:micronaut-function-aws"
-
-    implementation "com.amazonaws:aws-lambda-java-events:2.2.7"
-    implementation "software.amazon.awssdk:dynamodb:2.10.73"
-    implementation 'com.amazonaws:aws-xray-recorder-sdk-apache-http:2.4.0'
-
+    implementation "io.micronaut:micronaut-http-client"
     compileOnly "groovycalamari:googlechatcore:$micronautChatsVersion"
     compileOnly "groovycalamari:telegramdispatcher:$micronautChatsVersion"
-
-    if (project.ext.has("chatbots.env") && project.ext.get("chatbots.env") == 'googlechat') {
-        println "adding googlechatlambda dependency as runtimeOnly"
-        runtimeOnly "groovycalamari:googlechatlambda:$micronautChatsVersion"
-
-    } else if (project.ext.has("chatbots.env") && project.ext.get("chatbots.env") == 'telegram') {
-        println "adding telegramlambda dependency as runtimeOnly"
-        runtimeOnly "groovycalamari:telegramlambda:$micronautChatsVersion"
+    compileOnly "software.amazon.awssdk:dynamodb:$dynamoDbVersion"
+    if (project.ext.has("chatbots.env")) {
+        ChatBotsRuntime chatBotsRuntime = ChatBotsRuntime.TELEGRAM_LAMBDA
+        if (project.ext.get("chatbots.env") == 'googlechathttpfunction') {
+            chatBotsRuntime = ChatBotsRuntime.GOOGLECHAT_GCP_HTTP_FUNCTION
+        } else if(project.ext.get("chatbots.env") == 'googlechat') {
+            chatBotsRuntime = ChatBotsRuntime.GOOGLECHAT_LAMBDA
+        } else if(project.ext.get("chatbots.env") == 'telegram') {
+            chatBotsRuntime = ChatBotsRuntime.TELEGRAM_LAMBDA
+        }
+        boolean lambdaEnvironment = chatBotsRuntime == ChatBotsRuntime.TELEGRAM_LAMBDA ||
+                chatBotsRuntime == ChatBotsRuntime.GOOGLECHAT_LAMBDA
+        if (lambdaEnvironment) {
+            implementation "io.micronaut:micronaut-function-aws"
+            implementation "com.amazonaws:aws-lambda-java-events:$lambdaEventsVersion"
+            implementation "software.amazon.awssdk:dynamodb:$dynamoDbVersion"
+            implementation "com.amazonaws:aws-xray-recorder-sdk-apache-http:$xrayRecorderSdkApacheHttpVersion"
+        }
+        switch (chatBotsRuntime) {
+            case ChatBotsRuntime.TELEGRAM_LAMBDA:
+                logger.quiet("telegram lambda runtime")
+                runtimeOnly "groovycalamari:telegramlambda:$micronautChatsVersion"
+                break
+            case ChatBotsRuntime.GOOGLECHAT_GCP_HTTP_FUNCTION:
+                logger.quiet("micronaut-gcp-function-http runtime")
+                runtimeOnly "groovycalamari:googlechathttpserver:$micronautChatsVersion"
+                implementation("io.micronaut.gcp:micronaut-gcp-function-http:1.2.0.BUILD-SNAPSHOT")
+                break
+            case ChatBotsRuntime.GOOGLECHAT_LAMBDA:
+                logger.quiet("google chat lambda runtime")
+                runtimeOnly "groovycalamari:googlechatlambda:$micronautChatsVersion"
+                break
+        }
     }
-    testImplementation "groovycalamari:telegramlambda:$micronautChatsVersion"
-
-    implementation 'groovycalamari:exchangeratesapi:0.4'
-
+    implementation "groovycalamari:exchangeratesapi:$exchangeRatesApiVersion"
     runtimeOnly "com.amazonaws:aws-lambda-java-log4j2:1.0.0"
     runtimeOnly "org.apache.logging.log4j:log4j-slf4j-impl:2.9.1"
+
+    testImplementation "groovycalamari:telegramlambda:$micronautChatsVersion"
+    testImplementation "software.amazon.awssdk:dynamodb:$dynamoDbVersion"
 
     testAnnotationProcessor platform("io.micronaut:micronaut-bom:$micronautVersion")
     testAnnotationProcessor "io.micronaut:micronaut-inject-java"

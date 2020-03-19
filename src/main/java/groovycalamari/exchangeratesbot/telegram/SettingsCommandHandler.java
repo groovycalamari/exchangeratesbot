@@ -2,6 +2,8 @@ package groovycalamari.exchangeratesbot.telegram;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.NonNull;
+import groovycalamari.exchangeratesbot.ChooseBaseCommand;
+import groovycalamari.exchangeratesbot.ChooseTargetCommand;
 import groovycalamari.exchangeratesbot.Settings;
 import groovycalamari.exchangeratesbot.UserRepository;
 import io.micronaut.bots.core.ChatBotMessageParser;
@@ -72,12 +74,12 @@ public class SettingsCommandHandler extends InlineKeyboardHandler {
         List<InlineKeyboardButton> row = new ArrayList<>();
 
         InlineKeyboardButton baseBtn = new InlineKeyboardButton();
-        baseBtn.setCallbackData(telegramBot.getAtUsername() + " " + CommandHandler.COMMAND_PREFIX + ChooseBaseCommandHandler.COMMAND_CHOOSEBASE);
+        baseBtn.setCallbackData(telegramBot.getAtUsername() + " " + CommandHandler.COMMAND_PREFIX + ChooseBaseCommand.COMMAND_CHOOSEBASE);
         baseBtn.setText(BASE_CURRENCY);
         row.add(baseBtn);
 
         InlineKeyboardButton targetBtn = new InlineKeyboardButton();
-        targetBtn.setCallbackData(telegramBot.getAtUsername() + " " + CommandHandler.COMMAND_PREFIX + ChooseTargetCommandHandler.COMMAND_CHOOSETARGET);
+        targetBtn.setCallbackData(telegramBot.getAtUsername() + " " + CommandHandler.COMMAND_PREFIX + ChooseTargetCommand.COMMAND_CHOOSETARGET);
         targetBtn.setText(TARGET_CURRENCY);
         row.add(targetBtn);
         keyboard.add(row);

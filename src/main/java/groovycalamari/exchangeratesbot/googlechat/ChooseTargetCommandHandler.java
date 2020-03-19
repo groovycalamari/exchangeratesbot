@@ -1,13 +1,11 @@
-package groovycalamari.exchangeratesbot.telegram;
+package groovycalamari.exchangeratesbot.googlechat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import groovycalamari.exchangeratesbot.ChooseTargetCommand;
 import groovycalamari.exchangeratesbot.SetTargetCommandHandler;
+import io.micronaut.bots.core.ChatBotMessageReceive;
 import io.micronaut.bots.core.CommandHandler;
-import io.micronaut.bots.core.MessageComposer;
-import io.micronaut.bots.telegram.core.Update;
-import io.micronaut.bots.telegram.httpclient.TelegramBot;
+import io.micronaut.bots.googlechat.core.GoogleChatButton;
 import io.micronaut.context.annotation.Requires;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,20 +13,15 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-@Requires(classes = Update.class)
+@Requires(classes = GoogleChatButton.class)
 @Named(ChooseTargetCommand.COMMAND_CHOOSETARGET)
 @Singleton
 public class ChooseTargetCommandHandler extends ChooseCommandHandler {
     private static final Logger LOG = LoggerFactory.getLogger(ChooseTargetCommandHandler.class);
 
-    protected ChooseTargetCommandHandler(ObjectMapper objectMapper,
-                                         MessageComposer messageComposer) {
-        super(objectMapper, messageComposer);
-    }
-
     @NonNull
     @Override
-    protected String messageText(@NonNull TelegramBot telegramBot, @NonNull Update update) {
+    protected String messageText(@NonNull ChatBotMessageReceive chatUpdate) {
         return "Choose your default target currency";
     }
 

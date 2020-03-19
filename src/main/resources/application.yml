@@ -11,3 +11,5 @@ telegram:
       help:
         parse-mode: 'Markdown'
         path: 'classpath:help.md'
+exchangerates:
+  read-timeout: 30s

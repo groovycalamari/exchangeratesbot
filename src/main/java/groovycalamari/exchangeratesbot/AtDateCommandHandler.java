@@ -1,12 +1,15 @@
 package groovycalamari.exchangeratesbot;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import io.exchangeratesapi.Currency;
+import io.exchangeratesapi.ExchangeRates;
+import io.exchangeratesapi.ExchangeRatesApi;
 import io.micronaut.bots.core.ChatBotMessageParser;
 import io.micronaut.bots.core.ChatBotMessageReceive;
 import io.micronaut.bots.core.MatcherCommandHandler;
 import io.micronaut.bots.core.MessageComposer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Singleton;
 import javax.validation.constraints.NotBlank;
@@ -18,6 +21,7 @@ import java.util.stream.Stream;
 
 @Singleton
 public class AtDateCommandHandler extends ExchangeRatesApiCommandHandler implements MatcherCommandHandler {
+    private static final Logger LOG = LoggerFactory.getLogger(AtDateCommandHandler.class);
 
     private static final Pattern pattern;
 
@@ -28,8 +32,8 @@ public class AtDateCommandHandler extends ExchangeRatesApiCommandHandler impleme
 
     protected AtDateCommandHandler(MessageComposer messageComposer,
                                    ChatBotMessageParser messageParser,
-                                   ObjectMapper objectMapper) {
-        super(messageComposer, messageParser, objectMapper);
+                                   ExchangeRatesApi exchangeRatesApi) {
+        super(messageComposer, messageParser, exchangeRatesApi);
     }
 
     @Override
@@ -38,14 +42,15 @@ public class AtDateCommandHandler extends ExchangeRatesApiCommandHandler impleme
     }
 
     @Override
-    protected Optional<String> parseUri(@NonNull ChatBotMessageReceive update, @NonNull String text) {
+    protected Optional<ExchangeRates> exchangeRates(@NonNull ChatBotMessageReceive update, @NonNull String text) {
         Matcher matcher = pattern.matcher(text.toUpperCase());
         matcher.find();
         if (matcher.groupCount() >= 5) {
             String dateStr = matcher.group(1);
             Currency base = Currency.valueOf(matcher.group(4));
             Currency symbol = Currency.valueOf(matcher.group(5));
-            return Optional.of(atDateUri(dateStr, base, symbol));
+            return atDate(dateStr, base, symbol);
+
         }
         return Optional.empty();
     }

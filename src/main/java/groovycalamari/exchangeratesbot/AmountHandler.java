@@ -1,8 +1,8 @@
 package groovycalamari.exchangeratesbot;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.NonNull;
-import groovycalamari.exchangeratesbot.telegram.ChooseTargetCommandHandler;
+import io.exchangeratesapi.ExchangeRates;
+import io.exchangeratesapi.ExchangeRatesApi;
 import io.micronaut.bots.core.ChatBot;
 import io.micronaut.bots.core.ChatBotMessageParser;
 import io.micronaut.bots.core.ChatBotMessageReceive;
@@ -26,9 +26,9 @@ public class AmountHandler extends ExchangeRatesApiCommandHandler implements Mat
 
     public AmountHandler(MessageComposer messageComposer,
                          ChatBotMessageParser messageParser,
-                         ObjectMapper objectMapper,
+                         ExchangeRatesApi exchangeRatesApi,
                          UserRepository userRepository) {
-        super(messageComposer, messageParser, objectMapper);
+        super(messageComposer, messageParser, exchangeRatesApi);
         this.userRepository = userRepository;
     }
 
@@ -80,7 +80,7 @@ public class AmountHandler extends ExchangeRatesApiCommandHandler implements Mat
     }
 
     @Override
-    protected Optional<String> parseUri(@NonNull ChatBotMessageReceive update, @NonNull String text) {
+    protected Optional<ExchangeRates> exchangeRates(@NonNull ChatBotMessageReceive update, @NonNull String text) {
         Optional<Serializable> userIdOptional = messageParser.parseUserId(update);
         if (userIdOptional.isPresent()) {
             Serializable userId = userIdOptional.get();
@@ -88,7 +88,8 @@ public class AmountHandler extends ExchangeRatesApiCommandHandler implements Mat
             if (settingsOptional.isPresent()) {
                 Settings settings = settingsOptional.get();
                 if (settings.getBase() != null && settings.getTarget() != null) {
-                    return parseUriAtSettings(settings, text);
+                    return exchangeRatesWithSettings(settings, text);
+
                 } else {
                     if (settings.getBase() == null) {
                         if (LOG.isInfoEnabled()) {
@@ -110,7 +111,7 @@ public class AmountHandler extends ExchangeRatesApiCommandHandler implements Mat
         return Optional.empty();
     }
 
-    protected Optional<String> parseUriAtSettings(Settings settings, String text) {
-        return Optional.of(latestUri(settings.getBase(), settings.getTarget()));
+    protected Optional<ExchangeRates> exchangeRatesWithSettings(Settings settings, String text) {
+        return latest(settings.getBase(), settings.getTarget());
     }
 }

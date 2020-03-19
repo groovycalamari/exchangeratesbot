@@ -1,7 +1,8 @@
 package groovycalamari.exchangeratesbot;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.NonNull;
+import io.exchangeratesapi.ExchangeRates;
+import io.exchangeratesapi.ExchangeRatesApi;
 import io.micronaut.bots.core.ChatBotMessageParser;
 import io.micronaut.bots.core.MessageComposer;
 import org.slf4j.Logger;
@@ -27,9 +28,9 @@ public class AmountAtDateHandler extends AmountHandler {
 
     public AmountAtDateHandler(MessageComposer messageComposer,
                                ChatBotMessageParser messageParser,
-                               ObjectMapper objectMapper,
+                               ExchangeRatesApi exchangeRatesApi,
                                UserRepository userRepository) {
-        super(messageComposer, messageParser, objectMapper, userRepository);
+        super(messageComposer, messageParser, exchangeRatesApi, userRepository);
     }
 
     @Override
@@ -63,8 +64,13 @@ public class AmountAtDateHandler extends AmountHandler {
         return Optional.empty();
     }
 
-    protected Optional<String> parseUriAtSettings(Settings settings, String text) {
-        return parseDateStr(text).map(datStr -> atDateUri(datStr, settings.getBase(), settings.getTarget()));
-
+    @Override
+    protected Optional<ExchangeRates> exchangeRatesWithSettings(Settings settings, String text) {
+        Optional<String> dateStrOptional = parseDateStr(text);
+        if (dateStrOptional.isPresent()) {
+            String dateStr = dateStrOptional.get();
+            return atDate(dateStr, settings.getBase(), settings.getTarget());
+        }
+        return Optional.empty();
     }
 }
