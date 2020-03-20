@@ -1,4 +1,4 @@
-import groovycalamari.exchangeratesbot.build.ChatBotsRuntime
+import groovycalamari.exchangeratesbot.gradle.ChatBotsRuntime
 
 plugins {
     id "com.github.johnrengelman.shadow" version "5.2.0"
