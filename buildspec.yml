@@ -6,10 +6,11 @@ phases:
   build:
     commands:
       - ./gradlew -Pchatbots.env=googlechat build
-      - aws lambda update-function-code --function-name exchangeratesbot-googlechat --zip-file fileb://build/libs/exchangesratesbotgooglechat-0.1-all.jar --publish
       - ./gradlew -Pchatbots.env=telegram build
-        - aws lambda update-function-code --function-name exchangeratesbot-telegram --zip-file fileb://build/libs/exchangesratesbottelegram-0.1-all.jar --publish
   post_build:
+    commands:
+      - aws lambda update-function-code --function-name exchangeratesbot-googlechat --zip-file fileb://build/libs/exchangesratesbotgooglechat-0.1-all.jar --publish
+      - aws lambda update-function-code --function-name exchangeratesbot-telegram --zip-file fileb://build/libs/exchangesratesbottelegram-0.1-all.jar --publish
     finally:
       - rm -f  /root/.gradle/caches/modules-2/modules-2.lock
       - rm -fr /root/.gradle/caches/*/plugin-resolution/
