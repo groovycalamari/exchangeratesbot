@@ -5,8 +5,8 @@ phases:
       java: corretto11
   build:
     commands:
-      - ./gradlew -Pchatbots.env=googlechat build
-      - ./gradlew -Pchatbots.env=telegram build
+      - ./gradlew -Pchatbots.env=googlechat build --scan
+      - ./gradlew -Pchatbots.env=telegram build --scan
   post_build:
     commands:
       - aws lambda update-function-code --function-name exchangeratesbot-googlechat --zip-file fileb://build/libs/exchangesratesbotgooglechat-0.1-all.jar --publish
