@@ -5,13 +5,12 @@ phases:
       java: corretto11
   build:
     commands:
-      - ./gradlew addBuildIdToAbout
-      - ./gradlew -Pchatbots.env=googlechat build --scan --stacktrace -x test --console=plain
-      - ./gradlew -Pchatbots.env=telegram build --scan --stacktrace -x test --console=plain
+      - ./gradlew telegram:addBuildIdToAbout
+      - ./gradlew build --scan --stacktrace --console=plain
   post_build:
     commands:
-      - aws lambda update-function-code --function-name exchangeratesbot-googlechat --zip-file fileb://build/libs/exchangesratesbotgooglechat-0.1-all.jar --publish
-      - aws lambda update-function-code --function-name exchangeratesbot-telegram --zip-file fileb://build/libs/exchangesratesbottelegram-0.1-all.jar --publish
+      - aws lambda update-function-code --function-name exchangeratesbot-googlechat --zip-file fileb://subprojects/telegram/build/libs/telegram-0.1-all.jar --publish
+      - aws lambda update-function-code --function-name exchangeratesbot-telegram --zip-file fileb://subprojects/telegram/build/libs/googlechat-0.1-all.jar --publish
     finally:
       - rm -f  /root/.gradle/caches/modules-2/modules-2.lock
       - rm -fr /root/.gradle/caches/*/plugin-resolution/

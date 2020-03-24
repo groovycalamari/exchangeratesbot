@@ -1,148 +1,79 @@
-import groovycalamari.exchangeratesbot.gradle.ChatBotsRuntime
-
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Copyright 2020 Sergio del Amo.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 plugins {
-    id "com.github.johnrengelman.shadow" version "5.2.0"
-    id "jp.classmethod.aws.lambda" version "0.39"
-    id "net.ltgt.apt-eclipse" version "0.21"
-    id "application"
-    id "groovy"
+    // https://plugins.gradle.org/plugin/org.kordamp.gradle.java-project
+    id 'org.kordamp.gradle.java-project' version '0.32.0'
 }
-
-version "0.1"
-group "groovycalamari"
-
 
 ext {
-    micronautChatsVersion = '0.32'
-    dynamoDbVersion = '2.10.73'
-    lambdaEventsVersion = '2.2.7'
-    xrayRecorderSdkApacheHttpVersion = '2.4.0'
-    exchangeRatesApiVersion = '0.5'
+    githubSlug = 'exchangeratesbot'
+    githubOrg = 'groovycalamari'
 }
 
-repositories {
-    jcenter()
-}
+config {
+    release = (rootProject.findProperty('release') ?: false) as boolean
 
-repositories {
-    mavenCentral()
-    maven { url "https://jcenter.bintray.com" }
-    maven { url = 'https://dl.bintray.com/groovycalamari/maven'}
-    maven { url "https://oss.jfrog.org/oss-snapshot-local" }
-}
+    info {
+        name        = 'Exchange Rates Bot'
+        vendor      = 'Groovy Calamari'
+        description = 'Bot to obtain foreign exchange rates published by the European Central Bank.'
+        inceptionYear = '2020'
 
-configurations {
-    // for dependencies that are needed for development only
-    developmentOnly 
-}
-
-dependencies {
-    annotationProcessor platform("io.micronaut:micronaut-bom:$micronautVersion")
-    annotationProcessor "io.micronaut:micronaut-inject-java"
-    annotationProcessor "io.micronaut:micronaut-validation"
-    implementation platform("io.micronaut:micronaut-bom:$micronautVersion")
-    implementation "io.micronaut:micronaut-inject"
-    implementation "io.micronaut:micronaut-validation"
-    implementation "io.micronaut:micronaut-runtime"
-    implementation "io.micronaut:micronaut-http-client"
-    compileOnly "groovycalamari:googlechatcore:$micronautChatsVersion"
-    compileOnly "groovycalamari:telegramdispatcher:$micronautChatsVersion"
-    compileOnly "software.amazon.awssdk:dynamodb:$dynamoDbVersion"
-    if (project.ext.has("chatbots.env")) {
-        ChatBotsRuntime chatBotsRuntime = ChatBotsRuntime.TELEGRAM_LAMBDA
-        if (project.ext.get("chatbots.env") == 'googlechathttpfunction') {
-            chatBotsRuntime = ChatBotsRuntime.GOOGLECHAT_GCP_HTTP_FUNCTION
-        } else if(project.ext.get("chatbots.env") == 'googlechat') {
-            chatBotsRuntime = ChatBotsRuntime.GOOGLECHAT_LAMBDA
-        } else if(project.ext.get("chatbots.env") == 'telegram') {
-            chatBotsRuntime = ChatBotsRuntime.TELEGRAM_LAMBDA
+        links {
+            website      = "https://github.com/${githubOrg}/${githubSlug}"
+            issueTracker = "https://github.com/${githubOrg}/${githubSlug}/issues"
+            scm          = "https://github.com/${githubOrg}/${githubSlug}.git"
         }
-        boolean lambdaEnvironment = chatBotsRuntime == ChatBotsRuntime.TELEGRAM_LAMBDA ||
-                chatBotsRuntime == ChatBotsRuntime.GOOGLECHAT_LAMBDA
-        if (lambdaEnvironment) {
-            implementation "io.micronaut:micronaut-function-aws"
-            implementation "com.amazonaws:aws-lambda-java-events:$lambdaEventsVersion"
-            implementation "software.amazon.awssdk:dynamodb:$dynamoDbVersion"
-            implementation "com.amazonaws:aws-xray-recorder-sdk-apache-http:$xrayRecorderSdkApacheHttpVersion"
+
+        people {
+            person {
+                id    = 'sdelamo'
+                name  = 'Sergio del Amo'
+                roles = ['developer']
+            }
         }
-        switch (chatBotsRuntime) {
-            case ChatBotsRuntime.TELEGRAM_LAMBDA:
-                logger.quiet("telegram lambda runtime")
-                runtimeOnly "groovycalamari:telegramlambda:$micronautChatsVersion"
-                break
-            case ChatBotsRuntime.GOOGLECHAT_GCP_HTTP_FUNCTION:
-                logger.quiet("micronaut-gcp-function-http runtime")
-                runtimeOnly "groovycalamari:googlechathttpserver:$micronautChatsVersion"
-                implementation("io.micronaut.gcp:micronaut-gcp-function-http:1.2.0.BUILD-SNAPSHOT")
-                break
-            case ChatBotsRuntime.GOOGLECHAT_LAMBDA:
-                logger.quiet("google chat lambda runtime")
-                runtimeOnly "groovycalamari:googlechatlambda:$micronautChatsVersion"
-                break
+        ciManagement {
+            system = "AWS Code Build"
+            url = "https://eu-west-1.console.aws.amazon.com/codesuite/codebuild/projects/exchangeratesbot/history?region=eu-west-1"
         }
     }
-    implementation "groovycalamari:exchangeratesapi:$exchangeRatesApiVersion"
-    runtimeOnly "com.amazonaws:aws-lambda-java-log4j2:1.0.0"
-    runtimeOnly "org.apache.logging.log4j:log4j-slf4j-impl:2.9.1"
 
-    testImplementation "groovycalamari:telegramlambda:$micronautChatsVersion"
-    testImplementation "software.amazon.awssdk:dynamodb:$dynamoDbVersion"
-
-    testAnnotationProcessor platform("io.micronaut:micronaut-bom:$micronautVersion")
-    testAnnotationProcessor "io.micronaut:micronaut-inject-java"
-    testImplementation platform("io.micronaut:micronaut-bom:$micronautVersion")
-
-    testImplementation("org.spockframework:spock-core") {
-        exclude module: 'groovy-all'
-    }
-    testImplementation "io.micronaut:micronaut-function-client"
-    testImplementation "io.micronaut:micronaut-inject-java"
-    testRuntimeOnly "io.micronaut:micronaut-http-server-netty"
-    testRuntimeOnly "io.micronaut:micronaut-function-web"
-}
-
-compileGroovy {
-    sourceCompatibility = project.sourceCompatibility
-    targetCompatibility = project.targetCompatibility
-}
-
-test.classpath += configurations.developmentOnly
-shadowJar {
-    transform(com.github.jengelman.gradle.plugins.shadow.transformers.Log4j2PluginsCacheFileTransformer)
-}
-
-tasks.withType(JavaCompile){
-    options.encoding = "UTF-8"
-    options.compilerArgs.add('-parameters')
-}
-
-shadowJar {
-    mergeServiceFiles()
-}
-
-tasks.withType(JavaExec) {
-    classpath += configurations.developmentOnly
-    jvmArgs('-noverify', '-XX:TieredStopAtLevel=1', '-Dcom.sun.management.jmxremote')
-}
-mainClassName = "io.micronaut.function.executor.FunctionApplication"
-applicationDefaultJvmArgs = [""]
-
-shadowJar {
-    archiveBaseName =  "${rootProject.name}${project.ext.has("chatbots.env") ? project.ext.get("chatbots.env") : ""}"
-}
-jar {
-    archiveBaseName = "${rootProject.name}${project.ext.has("chatbots.env") ? project.ext.get("chatbots.env") : ""}"
-    manifest {
-        attributes 'Main-Class': mainClassName
+    licensing {
+        licenses {
+            license {
+                id = 'Apache-2.0'
+            }
+        }
     }
 }
-
-task addBuildIdToAbout {
-    onlyIf {
-        System.getenv('CODEBUILD_BUILD_ID') != null && new File('src/main/resources/about.md').exists()
+allprojects {
+    apply plugin: 'idea'
+    apply plugin: 'groovy'
+    repositories {
+        mavenCentral()
+        maven { url "https://jcenter.bintray.com" }
+        maven { url = 'https://dl.bintray.com/groovycalamari/maven'}
+        maven { url "https://oss.jfrog.org/oss-snapshot-local" }
     }
-    doLast {
-        new File('src/main/resources/about.md') << "\n\nbuild: ${System.getenv('CODEBUILD_BUILD_ID')}".toString()
-        println new File('src/main/resources/about.md').text
+}
+subprojects {
+    compileGroovy {
+        sourceCompatibility = project.sourceCompatibility
+        targetCompatibility = project.targetCompatibility
     }
 }
