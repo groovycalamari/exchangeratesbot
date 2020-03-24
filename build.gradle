@@ -137,3 +137,12 @@ jar {
     }
 }
 
+task addBuildIdToAbout {
+    onlyIf {
+        System.getenv('CODEBUILD_BUILD_ID') != null && new File('src/main/resources/about.md').exists()
+    }
+    doLast {
+        new File('src/main/resources/about.md') << "\n\nbuild: ${System.getenv('CODEBUILD_BUILD_ID')}".toString()
+        println new File('src/main/resources/about.md').text
+    }
+}
