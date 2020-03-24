@@ -5,7 +5,9 @@ phases:
       java: corretto11
   build:
     commands:
+      - ./gradlew --stop
       - ./gradlew -Pchatbots.env=googlechat build --scan --stacktrace --no-daemon
+      - ./gradlew --stop
       - ./gradlew -Pchatbots.env=telegram build --scan --stacktrace --no-daemon
   post_build:
     commands:
