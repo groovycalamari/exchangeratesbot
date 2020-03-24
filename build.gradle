@@ -101,6 +101,11 @@ dependencies {
     testRuntimeOnly "io.micronaut:micronaut-function-web"
 }
 
+compileGroovy {
+    sourceCompatibility = project.sourceCompatibility
+    targetCompatibility = project.targetCompatibility
+}
+
 test.classpath += configurations.developmentOnly
 shadowJar {
     transform(com.github.jengelman.gradle.plugins.shadow.transformers.Log4j2PluginsCacheFileTransformer)
