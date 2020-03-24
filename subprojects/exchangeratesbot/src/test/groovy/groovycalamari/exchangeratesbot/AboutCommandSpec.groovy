@@ -22,6 +22,14 @@ import io.micronaut.inject.qualifiers.Qualifiers
 
 class AboutCommandSpec extends ApplicationContextSpecification {
 
+    @Override
+    Map<String, Object> getConfiguration() {
+        super.configuration + [
+                'telegram.bots.commands.about.parse-mode': 'Markdown',
+                'telegram.bots.commands.about.path': 'classpath:about.md',
+        ]
+    }
+
     void "about command defined"() {
         expect:
         applicationContext.containsBean(FileCommandHandler, Qualifiers.byName("about"))

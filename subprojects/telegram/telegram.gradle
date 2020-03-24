@@ -48,24 +48,12 @@ dependencies {
     implementation "io.micronaut:micronaut-function-aws"
     implementation "com.amazonaws:aws-lambda-java-events:$lambdaEventsVersion"
 
+    implementation "software.amazon.awssdk:dynamodb:$dynamoDbVersion"
     implementation project(":exchangeratesbot")
-
-    runtimeOnly "groovycalamari:telegramlambda:$micronautChatsVersion"
+    implementation "groovycalamari:telegramlambda:$micronautChatsVersion"
 
     runtimeOnly "com.amazonaws:aws-lambda-java-log4j2:1.0.0"
     runtimeOnly "org.apache.logging.log4j:log4j-slf4j-impl:2.9.1"
-
-    testImplementation "groovycalamari:telegramlambda:$micronautChatsVersion"
-    testAnnotationProcessor platform("io.micronaut:micronaut-bom:$micronautVersion")
-    testAnnotationProcessor "io.micronaut:micronaut-inject-java"
-    testImplementation platform("io.micronaut:micronaut-bom:$micronautVersion")
-    testImplementation("org.spockframework:spock-core") {
-        exclude module: 'groovy-all'
-    }
-    testImplementation "io.micronaut:micronaut-function-client"
-    testImplementation "io.micronaut:micronaut-inject-java"
-    testRuntimeOnly "io.micronaut:micronaut-http-server-netty"
-    testRuntimeOnly "io.micronaut:micronaut-function-web"
 }
 
 compileGroovy {

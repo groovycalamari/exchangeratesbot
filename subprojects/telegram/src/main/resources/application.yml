@@ -16,24 +16,18 @@
 # limitations under the License.
 #
 
-micronautVersion    = 2.0.0.BUILD-SNAPSHOT
-
-group               = groovycalamari
-version             = 0.33
-sourceCompatibility = 11
-targetCompatibility = 11
-
-org.gradle.jvmargs  = -Xmx2048M
-org.gradle.daemon   = true
-org.gradle.caching  = true
-org.gradle.parallel = true
-
-project_description = Bot to obtain foreign exchange rates published by the European Central Bank.
-
-copyrightYear       = '2020'
-
-awsLambdaJavaEventsVersion = 2.2.7
-micronautChatsVersion      = 0.32
-dynamoDbVersion            = 2.10.73
-lambdaEventsVersion        = 2.2.7
-exchangeRatesApiVersion    = 0.5
+micronaut:
+  function:
+    name: ForeignExchangeRatesBot
+---
+telegram:
+  bots:
+    commands:
+      about:
+        parse-mode: 'Markdown'
+        path: 'classpath:about.md'
+      help:
+        parse-mode: 'Markdown'
+        path: 'classpath:help.md'
+exchangerates:
+  read-timeout: 30s

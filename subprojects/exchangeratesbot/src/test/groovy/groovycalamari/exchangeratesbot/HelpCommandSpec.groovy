@@ -22,6 +22,14 @@ import io.micronaut.inject.qualifiers.Qualifiers
 
 class HelpCommandSpec extends ApplicationContextSpecification {
 
+    @Override
+    Map<String, Object> getConfiguration() {
+        super.configuration + [
+                'telegram.bots.commands.help.parse-mode': 'Markdown',
+                'telegram.bots.commands.help.path': 'classpath:help.md',
+        ]
+    }
+
     void "help command defined"() {
         expect:
         applicationContext.containsBean(FileCommandHandler, Qualifiers.byName("help"))

@@ -22,7 +22,10 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 abstract class ApplicationContextSpecification extends Specification {
+    Map<String, Object> getConfiguration() {
+        [:]
+    }
 
     @Shared
-    ApplicationContext applicationContext = ApplicationContext.run()
+    ApplicationContext applicationContext = ApplicationContext.run(configuration)
 }
