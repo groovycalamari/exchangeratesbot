@@ -5,6 +5,7 @@ phases:
       java: corretto11
   build:
     commands:
+      - echo "\nbuild: $CODEBUILD_BUILD_ID" &>> src/main/resources/about.md
       - ./gradlew -Pchatbots.env=googlechat build --scan --stacktrace -x test --console=plain
       - ./gradlew -Pchatbots.env=telegram build --scan --stacktrace -x test --console=plain
   post_build:
