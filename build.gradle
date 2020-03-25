@@ -98,8 +98,6 @@ subprojects { subproject ->
         dependencies {
             runtimeOnly "com.amazonaws:aws-lambda-java-log4j2:1.0.0"
             runtimeOnly "org.apache.logging.log4j:log4j-slf4j-impl:2.9.1"
-            implementation "io.micronaut:micronaut-function-aws"
-            implementation "com.amazonaws:aws-lambda-java-events:$lambdaEventsVersion"
         }
         tasks.register('addBuildIdToAbout') { task ->
             task.extensions.add('about', '/src/main/resources/about.md')
