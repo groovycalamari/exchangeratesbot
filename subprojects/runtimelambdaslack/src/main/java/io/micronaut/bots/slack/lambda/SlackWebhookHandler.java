@@ -50,6 +50,15 @@ public class SlackWebhookHandler extends MicronautRequestHandler<APIGatewayProxy
 
     @Override
     public APIGatewayProxyResponseEvent execute(APIGatewayProxyRequestEvent input) {
+
+        if (LOG.isTraceEnabled()) {
+            LOG.trace("Method: {} Path: {}", input.getHttpMethod(), input.getPath());
+            for (String header : input.getHeaders().keySet()) {
+                LOG.trace("H {}: {}", header, input.getHeaders().get(header));
+            }
+            LOG.trace("body: {}", input.getBody());
+
+        }
         String slackRequestTimeStamp = input.getHeaders().get(RequestVerifier.HEADER_SLACK_REQUEST_TIMESTAMP);
         if (slackRequestTimeStamp == null) {
             if (LOG.isWarnEnabled()) {
@@ -68,11 +77,20 @@ public class SlackWebhookHandler extends MicronautRequestHandler<APIGatewayProxy
 
         Optional<SlackConfiguration> slackConfigurationOptional = requestVerifier.verify(slackSignature, slackRequestTimeStamp, input.getBody());
         if (slackConfigurationOptional.isPresent()) {
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("verified slack app: {}", slackConfigurationOptional.get().getName());
+            }
             String body = input.getBody();
             if (body.contains(UrlVerificationEvent.TYPE_URL_VERIFICATION)) {
+                if (LOG.isTraceEnabled()) {
+                    LOG.trace("event url verification received");
+                }
                 UrlVerificationEvent challenge = null;
                 try {
                     challenge = objectMapper.readValue(body, UrlVerificationEvent.class);
+                    if (LOG.isTraceEnabled()) {
+                        LOG.trace("challenge received {}", challenge.toString());
+                    }
                 } catch (JsonProcessingException e) {
                     if (LOG.isErrorEnabled()) {
                         LOG.error("error binding body {} to {}", body, UrlVerificationEvent.class.getSimpleName());
@@ -80,6 +98,10 @@ public class SlackWebhookHandler extends MicronautRequestHandler<APIGatewayProxy
                     return plainText(HttpStatus.BAD_REQUEST, "error binding body " + body + " to " + UrlVerificationEvent.class.getSimpleName());
                 }
                 return plainText(HttpStatus.OK, challenge.getChallenge());
+            }
+        } else {
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("slack request verification failed");
             }
         }
 
@@ -111,6 +133,12 @@ public class SlackWebhookHandler extends MicronautRequestHandler<APIGatewayProxy
         response.setHeaders(headers);
         response.setBody(msg);
         response.setStatusCode(status.getCode());
+        if (LOG.isTraceEnabled()) {
+            LOG.trace("response: {} content type: {} message {}",
+                    status.getCode(),
+                    headers.get(HttpHeaders.CONTENT_TYPE),
+                    msg);
+        }
         return response;
     }
 }

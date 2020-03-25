@@ -32,5 +32,6 @@
         <appender-ref ref="STDOUT" />
     </root>
     <logger name="io.micronaut.http" level="TRACE"/>
+    <logger name="io.micronaut.bots.slack" level="TRACE"/>
 
 </configuration>

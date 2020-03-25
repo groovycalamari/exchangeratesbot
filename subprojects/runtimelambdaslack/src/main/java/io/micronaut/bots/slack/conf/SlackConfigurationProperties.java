@@ -40,6 +40,7 @@ public class SlackConfigurationProperties implements SlackConfiguration {
         this.signingSecret = signingSecret;
     }
 
+    @Override
     public String getName() {
         return name;
     }

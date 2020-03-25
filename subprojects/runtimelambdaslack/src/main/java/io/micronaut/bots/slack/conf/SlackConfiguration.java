@@ -18,8 +18,9 @@
 package io.micronaut.bots.slack.conf;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
+import io.micronaut.core.naming.Named;
 
-public interface SlackConfiguration {
+public interface SlackConfiguration extends Named {
 
     @NonNull
     String getSigningSecret();

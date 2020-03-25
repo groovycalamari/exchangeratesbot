@@ -53,4 +53,13 @@ public class UrlVerificationEvent {
     public void setType(String type) {
         this.type = type;
     }
+
+    @Override
+    public String toString() {
+        return "UrlVerificationEvent{" +
+                "token='" + token + '\'' +
+                ", challenge='" + challenge + '\'' +
+                ", type='" + type + '\'' +
+                '}';
+    }
 }
