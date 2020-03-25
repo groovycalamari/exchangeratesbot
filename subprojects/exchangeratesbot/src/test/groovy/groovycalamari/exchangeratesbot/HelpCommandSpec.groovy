@@ -25,8 +25,8 @@ class HelpCommandSpec extends ApplicationContextSpecification {
     @Override
     Map<String, Object> getConfiguration() {
         super.configuration + [
-                'telegram.bots.commands.help.parse-mode': 'Markdown',
-                'telegram.bots.commands.help.path': 'classpath:help.md',
+                'telegram.commands.help.parse-mode': 'Markdown',
+                'telegram.commands.help.path': 'classpath:help.md',
         ]
     }
 
