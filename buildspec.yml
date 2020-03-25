@@ -11,6 +11,7 @@ phases:
     commands:
       - aws lambda update-function-code --function-name $LAMBDA_TELEGRAM --zip-file fileb://subprojects/runtimelambdatelegram/build/libs/runtimelambdatelegram-0.1-all.jar --publish
       - aws lambda update-function-code --function-name $LAMBDA_GOOGLECHAT --zip-file fileb://subprojects/runtimelambdagooglechat/build/libs/runtimelambdagooglechat-0.1-all.jar --publish
+      - - aws lambda update-function-code --function-name $LAMBDA_SLACK --zip-file fileb://subprojects/runtimelambdaslack/build/libs/runtimelambdaslack-0.1-all.jar --publish
     finally:
       - rm -f  /root/.gradle/caches/modules-2/modules-2.lock
       - rm -fr /root/.gradle/caches/*/plugin-resolution/
