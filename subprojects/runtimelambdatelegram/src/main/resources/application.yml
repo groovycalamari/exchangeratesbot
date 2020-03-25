@@ -22,12 +22,15 @@ micronaut:
 ---
 telegram:
   bots:
-    commands:
-      about:
-        parse-mode: 'Markdown'
-        path: 'classpath:about.md'
-      help:
-        parse-mode: 'Markdown'
-        path: 'classpath:help.md'
+    foreignexchangeratesbot:
+      token: ${TOKEN}
+      at-username: '@ForeignExchangeRatesBot'
+  commands:
+    about:
+      parse-mode: 'Markdown'
+      path: 'classpath:about.md'
+    help:
+      parse-mode: 'Markdown'
+      path: 'classpath:help.md'
 exchangerates:
   read-timeout: 30s
