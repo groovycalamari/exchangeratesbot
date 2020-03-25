@@ -37,7 +37,7 @@ config {
 }
 
 dependencies {
-    runtimeOnly "groovycalamari:telegramlambda:$micronautChatsVersion"
+    implementation("groovycalamari:telegramlambda:$micronautChatsVersion")
     implementation "software.amazon.awssdk:dynamodb:$dynamoDbVersion"
     implementation project(":exchangeratesbot")
 }
