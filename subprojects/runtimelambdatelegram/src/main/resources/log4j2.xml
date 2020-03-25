@@ -27,6 +27,9 @@
         </Lambda>
     </Appenders>
     <Loggers>
+        <Logger name="io.micronaut.bots" level="trace">
+            <AppenderRef ref="Lambda"/>
+        </Logger>
         <Root level="info">
             <AppenderRef ref="Lambda" />
         </Root>
