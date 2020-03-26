@@ -1,4 +1,4 @@
 steps:
-  - name: 'java:11'
+  - name: 'gradlebuild'
     entrypoint: 'bash'
     args: ['-c', './gradlew build --scan --stacktrace --console=plain']
